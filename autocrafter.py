@@ -1,177 +1,362 @@
 import time
 import threading
+import argparse
 from pynput.keyboard import Key, KeyCode, Controller, Listener
 
-# Variables
-DEBUG = True
-CRAFTING_DELAY = 1
-USE_FOOD = True
-USE_POTION = True
-FOOD_DURATION = 1  # minutes * 60
-POTION_DURATION = 1  # minutes * 60
-MACRO_1_DURATION = 1  # number of lines * 3
-MACRO_2_DURATION = 1  # number of lines * 3
-MAX_AMOUNT = 1
-
-# Hotkeys
-CONFIRM = KeyCode()
-CANCEL = KeyCode()
-FOOD = KeyCode()
-POTION = KeyCode()
-MACRO_1 = KeyCode()
-MACRO_2 = KeyCode()
-
-start_stop_key = KeyCode(char="a")
-stop_key = KeyCode(char="b")
+# Constants
+POTION_DURATION = 900
+SPECIAL_KEYS = {
+    "insert": Key.insert,
+    "delete": Key.delete,
+    "home": Key.home,
+    "end": Key.end,
+    "page_up": Key.page_up,
+    "page_down": Key.page_down,
+}
 
 
 class AutoCrafter(threading.Thread):
-    def __init__(self, delay, max_amount):
+    def __init__(
+        self,
+        delay,
+        max_amount,
+        macro1,
+        macro1_duration,
+        confirm,
+        cancel,
+        start_stop,
+        stop,
+        food=None,
+        food_duration=None,
+        potion=None,
+        macro2=None,
+        macro2_duration=None,
+        debug=False,
+    ):
         super().__init__()
-        self.delay = delay
+        self.debug = debug
         self.running = False
         self.program_running = True
+
+        self.food = food
+        self.food_duration = food_duration
+        self.potion = potion
+        self.delay = delay
+        self.max_amount = max_amount
+        self.macro1 = macro1
+        self.macro1_duration = macro1_duration
+        self.macro2 = macro2
+        self.macro2_duration = macro2_duration
+        self.confirm = confirm
+        self.cancel = cancel
+        self.start_stop = start_stop
+        self.stop = stop
+
         self.start_food_time = None
         self.start_potion_time = None
         self.counter = 0
-        self.max_amount = max_amount
 
     def start_autocrafter(self):
-        print("STARTING AUTOCRAFTER")
+        if self.debug:
+            print("STARTING AUTOCRAFTER")
+
         self.running = True
 
     def stop_autocrafter(self):
-        print("STOPPING AUTOCRAFTER")
+        if self.debug:
+            print("PAUSING AUTOCRAFTER")
+
         self.running = False
 
-    @staticmethod
-    def start_craft():
-        keyboard.tap(CONFIRM)
-        time.sleep(0.5)
-        keyboard.tap(CONFIRM)
-        time.sleep(0.5)
-        keyboard.tap(CONFIRM)
-        time.sleep(0.5)
-        keyboard.tap(CONFIRM)
-        time.sleep(3)
+    def exit(self):
+        self.stop_autocrafter()
 
-    @staticmethod
-    def cancel_craft():
-        keyboard.tap(CONFIRM)
-        time.sleep(0.5)
-        keyboard.tap(CANCEL)
-        time.sleep(0.5)
-        keyboard.tap(CONFIRM)
-        time.sleep(3)
+        if self.debug:
+            print("EXITING AUTOCRAFTER")
+
+        self.program_running = False
+
+    def start_craft(self):
+        keyboard.tap(self.confirm)
+        time.sleep(0.3)
+        keyboard.tap(self.confirm)
+        time.sleep(0.3)
+        keyboard.tap(self.confirm)
+        time.sleep(2)
+
+    def cancel_craft(self):
+        keyboard.tap(self.confirm)
+        time.sleep(0.3)
+        keyboard.tap(self.cancel)
+        time.sleep(0.3)
+        keyboard.tap(self.confirm)
+        time.sleep(2)
 
     def check_food(self):
-        if DEBUG:
+        if self.debug:
             print("CHECKING FOOD")
 
         if self.start_food_time is not None:
             difference = int(time.time()) - self.start_food_time
 
-            if DEBUG:
-                print(f"DIFFERENCE: {difference}")
-                print(f"START FOOD TIME: {self.start_food_time}")
+            if self.debug:
+                print(f"FOOD DURATION: {difference} / {self.food_duration}")
 
-            if difference > FOOD_DURATION:
+            if difference > self.food_duration:
                 self.consume_food()
-            time.sleep(1)
+
         else:
             self.consume_food()
 
     def consume_food(self):
-        print("CONSUMING FOOD")
+        if self.debug:
+            print("CONSUMING FOOD")
+
         self.cancel_craft()
+
         self.start_food_time = int(time.time())
-        keyboard.tap(FOOD)
-        time.sleep(2)
+        keyboard.tap(self.food)
+        time.sleep(3)
+
         self.start_craft()
 
     def check_potion(self):
-        if DEBUG:
+        if self.debug:
             print("CHECKING POTION")
 
         if self.start_potion_time is not None:
             difference = int(time.time()) - self.start_potion_time
 
-            if DEBUG:
-                print(f"DIFFERENCE: {difference}")
-                print(f"START POTION TIME: {self.start_potion_time}")
+            if self.debug:
+                print(f"POTION DURATION: {difference} / {POTION_DURATION}")
 
             if difference > POTION_DURATION:
                 self.consume_potion()
-            time.sleep(1)
+
         else:
             self.consume_potion()
 
     def consume_potion(self):
-        print("CONSUMING POTION")
-        self.cancel_craft()
-        self.start_potion_time = int(time.time())
-        keyboard.tap(POTION)
-        time.sleep(2)
-        self.start_craft()
+        if self.debug:
+            print("CONSUMING POTION")
 
-    def exit(self):
-        self.stop_autocrafter()
-        self.program_running = False
+        self.cancel_craft()
+
+        self.start_potion_time = int(time.time())
+        keyboard.tap(self.potion)
+        time.sleep(2)
+
+        self.start_craft()
 
     def run(self):
         while self.program_running:
             while self.running:
                 self.start_craft()
 
-                if USE_FOOD:
+                if self.food is not None:
                     self.check_food()
-                if USE_POTION:
+
+                if self.potion is not None:
                     self.check_potion()
 
-                keyboard.tap(MACRO_1)
-                time.sleep(MACRO_1_DURATION)
+                keyboard.tap(self.macro1)
+                time.sleep(self.macro1_duration)
 
-                if MACRO_2_DURATION != 0:
-                    keyboard.tap(MACRO_2)
-                    time.sleep(MACRO_2_DURATION)
+                if self.macro2 is not None:
+                    keyboard.tap(self.macro2)
+                    time.sleep(self.macro2_duration)
 
                 self.counter += 1
-                if self.max_amount is not None:
-                    print(f"CRAFTED: {self.counter} / {self.max_amount}")
-
-                    if self.counter >= self.max_amount:
-                        print("EXITING")
-                        self.exit()
-                else:
-                    print(f"CRAFTED: {self.counter}")
+                print(f"CRAFTED: {self.counter} / {self.max_amount}\n")
+                if self.counter >= self.max_amount:
+                    self.exit()
 
                 time.sleep(self.delay)
-            time.sleep(1)
+            time.sleep(0.5)
 
 
-keyboard = Controller()
-crafter_thread = AutoCrafter(CRAFTING_DELAY, MAX_AMOUNT)
-crafter_thread.start()
+def str_to_key(string):
+    if len(string) == 1:
+        key = KeyCode(char=string)
+
+    else:
+        key = SPECIAL_KEYS[string]
+
+    return key
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="increase output verbosity"
+    )
+    parser.add_argument("-f", "--food", help="use food option and hotkey")
+    parser.add_argument(
+        "--food_duration",
+        choices=["30", "40", "45"],
+        help="duration of food in minutes",
+    )
+    parser.add_argument("-p", "--potion", help="use potion option and hotkey")
+    parser.add_argument("delay", type=int, help="sets delay per craft")
+    parser.add_argument("max_amount", type=int, help="maximum amount to craft")
+    parser.add_argument("macro1", help="macro 1 hotkey")
+    parser.add_argument("macro1_duration", type=int, help="macro 1 duration")
+    parser.add_argument("-m2", "--macro2", help="macro 2 hotkey")
+    parser.add_argument("--macro2_duration", type=int, help="macro 2 duration")
+    parser.add_argument("confirm", help="confirm hotkey")
+    parser.add_argument("cancel", help="cancel hotkey")
+    parser.add_argument("start_stop", help="start/stop hotkey")
+    parser.add_argument("stop", help="stop hotkey")
+
+    args = parser.parse_args()
+
+    if args.verbose:
+        print("VERBOSE MODE")
+        print("\n=====\n")
+        print("ARGUMENTS:\n")
+        if args.food:
+            print(f"FOOD KEY: {args.food}")
+        if args.food_duration:
+            print(f"FOOD DURATION: {args.food_duration}")
+        if args.potion:
+            print(f"POTION KEY: {args.potion}")
+        print(f"DELAY: {args.delay}")
+        print(f"MAX AMOUNT: {args.max_amount}")
+        print(f"MACRO1 KEY: {args.macro1}")
+        print(f"MACRO1 DURATION: {args.macro1_duration}")
+        if args.macro2:
+            print(f"MACRO2 KEY: {args.macro2}")
+        if args.macro2_duration:
+            print(f"MACRO2 DURATION: {args.macro2_duration}")
+        print(f"CONFIRM KEY: {args.confirm}")
+        print(f"CANCEL KEY: {args.cancel}")
+        print(f"START/STOP KEY: {args.start_stop}")
+        print(f"STOP KEY: {args.stop}")
+        print("\n=====\n")
+
+    macro1_key = str_to_key(args.macro1)
+
+    if args.verbose:
+        try:
+            print(f"MACRO1_KEY: {macro1_key.char}")
+        except AttributeError:
+            print(f"MACRO1_KEY: {macro1_key}")
+
+    confirm_key = str_to_key(args.confirm)
+
+    if args.verbose:
+        try:
+            print(f"CONFIRM_KEY: {confirm_key.char}")
+        except AttributeError:
+            print(f"CONFIRM_KEY: {confirm_key}")
+
+    cancel_key = str_to_key(args.cancel)
+
+    if args.verbose:
+        try:
+            print(f"CANCEL_KEY: {cancel_key.char}")
+        except AttributeError:
+            print(f"CANCEL_KEY: {cancel_key}")
+
+    global start_stop_key
+    start_stop_key = str_to_key(args.start_stop)
+
+    if args.verbose:
+        try:
+            print(f"START_STOP_KEY: {start_stop_key.char}")
+        except AttributeError:
+            print(f"START_STOP_KEY: {start_stop_key}")
+
+    global stop_key
+    stop_key = str_to_key(args.stop)
+
+    if args.verbose:
+        try:
+            print(f"STOP_KEY: {stop_key.char}")
+        except AttributeError:
+            print(f"STOP_KEY: {stop_key}")
+
+    if args.food:
+        food_key = str_to_key(args.food)
+
+        if args.verbose:
+            try:
+                print(f"FOOD_KEY: {food_key.char}")
+            except AttributeError:
+                print(f"FOOD_KEY: {food_key}")
+    else:
+        food_key = None
+
+    if args.food_duration:
+        food_duration = int(args.food_duration) * 60
+
+        if args.verbose:
+            print(f"FOOD_DURATION: {food_duration}")
+    else:
+        food_duration = None
+
+    if args.potion:
+        potion_key = str_to_key(args.potion)
+
+        if args.verbose:
+            try:
+                print(f"POTION_KEY: {potion_key.char}")
+            except AttributeError:
+                print(f"POTION_KEY: {potion_key}")
+    else:
+        potion_key = None
+
+    if args.macro2:
+        macro2_key = str_to_key(args.macro2)
+
+        if args.verbose:
+            try:
+                print(f"MACRO2_KEY: {macro2_key.char}")
+            except AttributeError:
+                print(f"MACRO2_KEY: {macro2_key}")
+
+            print("\n=====\n")
+    else:
+        macro2_key = None
+
+    global autocrafter_thread
+    autocrafter_thread = AutoCrafter(
+        args.delay,
+        args.max_amount,
+        macro1_key,
+        args.macro1_duration,
+        confirm_key,
+        cancel_key,
+        start_stop_key,
+        stop_key,
+        food_key,
+        food_duration,
+        potion_key,
+        macro2_key,
+        args.macro2_duration,
+        args.verbose,
+    )
+    autocrafter_thread.start()
+
+    global keyboard
+    keyboard = Controller()
+
+    global listener
+    with Listener(on_press=on_press) as listener:
+        listener.join()
 
 
 def on_press(key):
-    if DEBUG:
-        try:
-            print(f"alphanumeric key {key.char} pressed")
-
-        except AttributeError:
-            print(f"special key {key} pressed")
-
     if key == start_stop_key:
-        if crafter_thread.running:
-            crafter_thread.stop_autocrafter()
+        if autocrafter_thread.running:
+            autocrafter_thread.stop_autocrafter()
         else:
-            crafter_thread.start_autocrafter()
+            autocrafter_thread.start_autocrafter()
 
     elif key == stop_key:
-        crafter_thread.exit()
+        autocrafter_thread.exit()
         listener.stop()
 
 
-with Listener(on_press=on_press) as listener:
-    listener.join()
+if __name__ == "__main__":
+    main()
