@@ -1,6 +1,12 @@
-# FFXIV AutoCrafter
+# XIVAutoCrafter - A FFXIV Automated Crafting Tool
 
 Automatically activates multiple crafting macros using [pynput](https://pypi.org/project/pynput/) while refreshing food and potion buffs.
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| pynput | >= 1.7 |
 
 ## Quick Start
 
