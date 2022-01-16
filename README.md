@@ -2,11 +2,13 @@
 
 Automatically activates multiple crafting macros using [pynput](https://pypi.org/project/pynput/) while refreshing food and potion buffs.
 
+
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| pynput | >= 1.7 |
+| [pynput](https://pypi.org/project/pynput/) | >= 1.7 |
+| [Gooey](https://github.com/chriskiehl/Gooey) | >= 1.0 |
 
 ## Quick Start
 
@@ -22,8 +24,8 @@ positional arguments:
   macro1_duration       macro 1 duration
   confirm               confirm hotkey
   cancel                cancel hotkey
-  start_stop            start/stop hotkey
-  stop                  stop hotkey
+  start_stop            start/stop XIVAutoCrafter hotkey
+  stop                  stop XIVAutoCrafter hotkey
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,6 +43,23 @@ optional arguments:
 
 Time is measured in seconds.
 
+## Accepted Special Keys
+
+| Name | Value |
+|------|-------|
+| Insert | `insert` |
+| Delete | `delete` |
+| Home | `home` |
+| End | `end` |
+| Page Up | `page_up` |
+| Page Down | `page_down` |
+
+## FAQ
+
+- **Does the game need to be in focus?**
+    - Yes, until further updates.
+
 ## TODO
 
-- GUI
+- Customized GUI to better show information
+- More supported hotkeys

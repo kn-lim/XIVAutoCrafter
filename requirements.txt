@@ -1,1 +1,2 @@
 pynput >= 1.7
+Gooey >= 1.0

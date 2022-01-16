@@ -2,6 +2,7 @@ import time
 import threading
 import argparse
 from pynput.keyboard import Key, KeyCode, Controller, Listener
+from gooey import Gooey
 
 # Constants
 POTION_DURATION = 900
@@ -184,7 +185,7 @@ def str_to_key(string):
 
     return key
 
-
+@Gooey
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -205,8 +206,8 @@ def main():
     parser.add_argument("--macro2_duration", type=int, help="macro 2 duration")
     parser.add_argument("confirm", help="confirm hotkey")
     parser.add_argument("cancel", help="cancel hotkey")
-    parser.add_argument("start_stop", help="start/stop hotkey")
-    parser.add_argument("stop", help="stop hotkey")
+    parser.add_argument("start_stop", help="start/stop XIVAutoCrafter hotkey")
+    parser.add_argument("stop", help="stop XIVAutoCrafter hotkey")
 
     args = parser.parse_args()
 
