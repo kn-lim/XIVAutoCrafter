@@ -1,47 +1,59 @@
+<p align="center">
+    <img alt="XIVAutoCrafter" width=256 height=256 src="https://raw.githubusercontent.com/kn-lim/XIVAutoCrafter/master/images/program_icon.png" />
+</p>
+
 # XIVAutoCrafter - A FFXIV Automated Crafting Tool
 
 Automatically activates multiple crafting macros using [pynput](https://pypi.org/project/pynput/) while refreshing food and potion buffs.
 
+GUI provided by [Gooey](https://github.com/chriskiehl/Gooey).
+
+Supports FFXIV Endwalker Patch 6.05+.
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| [pynput](https://pypi.org/project/pynput/) | >= 1.7 |
-| [Gooey](https://github.com/chriskiehl/Gooey) | >= 1.0 |
+| Python | >= 3.8 |
+| pynput | >= 1.7 |
+| Gooey | >= 1.0 |
 
-## Quick Start
+# Using the Tool
+
+## Prepping the Game
+
+In order for XIVAutoCrafter to work properly:
+
+1. **Make sure you are not near anything that can be interacted with.**
+    - This is important to make sure you don't accidentally target something else and thus being unable to craft.
+2. **Open the Crafting Log and select the item you want to craft with XIVAutoCrafter.**
+    - It helps to start the craft, see your character crouch down and then cancel the craft. 
+
+Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start.
+
+## Usage
+
+Run `python3 xivautocrafter.py` to launch XIVAutoCrafter.
 
 ```
-$ python3 autocrafter.py -h
-usage: autocrafter.py [-h] [-v] [-f FOOD] [--food_duration {30,40,45}] [-p POTION] [-m2 MACRO2] [--macro2_duration MACRO2_DURATION]
-                      delay max_amount macro1 macro1_duration confirm cancel start_stop stop
-
-positional arguments:
-  delay                 sets delay per craft
-  max_amount            maximum amount to craft
-  macro1                macro 1 hotkey
-  macro1_duration       macro 1 duration
-  confirm               confirm hotkey
-  cancel                cancel hotkey
-  start_stop            start/stop XIVAutoCrafter hotkey
-  stop                  stop XIVAutoCrafter hotkey
+required arguments:
+  delay                      sets delay per craft
+  max_amount                 maximum amount to craft
+  macro1                     macro 1 hotkey
+  macro1_duration            macro 1 duration in seconds
+  confirm                    confirm hotkey
+  cancel                     cancel hotkey
+  start_pause                start/pause XIVAutoCrafter hotkey
+  stop                       stop XIVAutoCrafter hotkey
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         increase output verbosity
-  -f FOOD, --food FOOD  use food option and hotkey
-  --food_duration {30,40,45}
-                        duration of food in minutes
-  -p POTION, --potion POTION
-                        use potion option and hotkey
-  -m2 MACRO2, --macro2 MACRO2
-                        macro 2 hotkey
-  --macro2_duration MACRO2_DURATION
-                        macro 2 duration
+  verbose                    increase output verbosity
+  food                       use food option and hotkey
+  food_duration {30,40,45}   duration of food in minutes
+  potion                     use potion option and hotkey
+  macro2                     macro 2 hotkey
+  macro2_duration            macro 2 duration in seconds
 ```
-
-Time is measured in seconds.
 
 ## Accepted Special Keys
 
@@ -54,12 +66,16 @@ Time is measured in seconds.
 | Page Up | `page_up` |
 | Page Down | `page_down` |
 
-## FAQ
+# FAQ
 
 - **Does the game need to be in focus?**
-    - Yes, until further updates.
+    - Yes.
 
-## TODO
 
-- Customized GUI to better show information
+# TODO
+
+- Sanitize user input properly
 - More supported hotkeys
+- Show estimated time to complete the craft
+- Game no longer needs to be in focus
+- Allow switching crafts while remembering current food and potion duration
