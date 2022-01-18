@@ -20,16 +20,9 @@ Supports FFXIV Endwalker Patch 6.05+.
 
 # Using the Tool
 
-## Prepping the Game
+## Installation
 
-In order for XIVAutoCrafter to work properly:
-
-1. **Make sure you are not near anything that can be interacted with.**
-    - This is important to make sure you don't accidentally target something else and thus being unable to craft.
-2. **Open the Crafting Log and select the item you want to craft with XIVAutoCrafter.**
-    - To ensure XIVAutoCrafter works, start and then cancel the craft.
-
-Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start.
+Run `pip install -r requirements.txt` to install pynput and Gooey.
 
 ## Usage
 
@@ -55,7 +48,18 @@ optional arguments:
   macro2_duration            macro 2 duration in seconds
 ```
 
-## Accepted Special Keys
+## Prepping the Game
+
+In order for XIVAutoCrafter to work properly:
+
+1. **Make sure you are not near anything that can be interacted with.**
+    - This is important to make sure you don't accidentally target something else and thus being unable to craft.
+2. **Open the Crafting Log and select the item you want to craft with XIVAutoCrafter.**
+    - To ensure XIVAutoCrafter works, start and then cancel the craft.
+
+Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start.
+
+## Accepted Special Hotkeys
 
 | Name | Value |
 |------|-------|
