@@ -5,6 +5,9 @@ from pynput.keyboard import Key, KeyCode, Controller, Listener
 from gooey import Gooey
 
 # Constants
+VERSION = "v0.1.0"
+COPYRIGHT = "2022"
+
 POTION_DURATION = 900
 SPECIAL_KEYS = {
     "insert": Key.insert,
@@ -16,7 +19,7 @@ SPECIAL_KEYS = {
 }
 
 
-class AutoCrafter(threading.Thread):
+class XIVAutoCrafter(threading.Thread):
     def __init__(
         self,
         delay,
@@ -25,7 +28,7 @@ class AutoCrafter(threading.Thread):
         macro1_duration,
         confirm,
         cancel,
-        start_stop,
+        start_pause,
         stop,
         food=None,
         food_duration=None,
@@ -50,7 +53,7 @@ class AutoCrafter(threading.Thread):
         self.macro2_duration = macro2_duration
         self.confirm = confirm
         self.cancel = cancel
-        self.start_stop = start_stop
+        self.start_pause = start_pause
         self.stop = stop
 
         self.start_food_time = None
@@ -185,7 +188,26 @@ def str_to_key(string):
 
     return key
 
-@Gooey
+@Gooey(
+    program_name="XIVAutoCrafter", 
+    program_description="A FFXIV Automated Crafting Tool",
+    image_dir="images",
+    menu=[{
+        "name": "File",
+        "items": [{
+            "type": "AboutDialog",
+            "menuTitle": "About",
+            "name": "XIVAutoCrafter",
+            "description": "A FFXIV Automated Crafting Tool",
+            "version": VERSION,
+            "copyright": COPYRIGHT,
+            "website": "https://github.com/kn-lim/XIVAutoCrafter",
+            "license": "MIT"
+        }]
+    }],
+    progress_regex=r"^CRAFTED: (\d+) / (\d+)",
+    progress_expr="x[0] / x[1] * 100"
+)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -201,12 +223,12 @@ def main():
     parser.add_argument("delay", type=int, help="sets delay per craft")
     parser.add_argument("max_amount", type=int, help="maximum amount to craft")
     parser.add_argument("macro1", help="macro 1 hotkey")
-    parser.add_argument("macro1_duration", type=int, help="macro 1 duration")
+    parser.add_argument("macro1_duration", type=int, help="macro 1 duration in seconds")
     parser.add_argument("-m2", "--macro2", help="macro 2 hotkey")
-    parser.add_argument("--macro2_duration", type=int, help="macro 2 duration")
+    parser.add_argument("--macro2_duration", type=int, help="macro 2 duration in seconds")
     parser.add_argument("confirm", help="confirm hotkey")
     parser.add_argument("cancel", help="cancel hotkey")
-    parser.add_argument("start_stop", help="start/stop XIVAutoCrafter hotkey")
+    parser.add_argument("start_pause", help="start/pause XIVAutoCrafter hotkey")
     parser.add_argument("stop", help="stop XIVAutoCrafter hotkey")
 
     args = parser.parse_args()
@@ -231,7 +253,7 @@ def main():
             print(f"MACRO2 DURATION: {args.macro2_duration}")
         print(f"CONFIRM KEY: {args.confirm}")
         print(f"CANCEL KEY: {args.cancel}")
-        print(f"START/STOP KEY: {args.start_stop}")
+        print(f"START/STOP KEY: {args.start_pause}")
         print(f"STOP KEY: {args.stop}")
         print("\n=====\n")
 
@@ -259,14 +281,14 @@ def main():
         except AttributeError:
             print(f"CANCEL_KEY: {cancel_key}")
 
-    global start_stop_key
-    start_stop_key = str_to_key(args.start_stop)
+    global start_pause_key
+    start_pause_key = str_to_key(args.start_pause)
 
     if args.verbose:
         try:
-            print(f"START_STOP_KEY: {start_stop_key.char}")
+            print(f"START_PAUSE_KEY: {start_pause_key.char}")
         except AttributeError:
-            print(f"START_STOP_KEY: {start_stop_key}")
+            print(f"START_PAUSE_KEY: {start_pause_key}")
 
     global stop_key
     stop_key = str_to_key(args.stop)
@@ -321,14 +343,14 @@ def main():
         macro2_key = None
 
     global autocrafter_thread
-    autocrafter_thread = AutoCrafter(
+    autocrafter_thread = XIVAutoCrafter(
         args.delay,
         args.max_amount,
         macro1_key,
         args.macro1_duration,
         confirm_key,
         cancel_key,
-        start_stop_key,
+        start_pause_key,
         stop_key,
         food_key,
         food_duration,
@@ -348,7 +370,7 @@ def main():
 
 
 def on_press(key):
-    if key == start_stop_key:
+    if key == start_pause_key:
         if autocrafter_thread.running:
             autocrafter_thread.stop_autocrafter()
         else:
