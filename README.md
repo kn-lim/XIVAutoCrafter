@@ -22,7 +22,7 @@ Supports FFXIV Endwalker Patch 6.05+.
 
 ## Installation
 
-Run `pip install -r requirements.txt` to install pynput and Gooey.
+Run `pip3 install -r requirements.txt` to install pynput and Gooey.
 
 ## Usage
 
