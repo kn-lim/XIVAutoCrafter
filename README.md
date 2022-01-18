@@ -75,7 +75,6 @@ Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start.
 - **Does the game need to be in focus?**
     - Yes.
 
-
 # TODO
 
 - Sanitize user input properly
