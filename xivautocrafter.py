@@ -1,28 +1,33 @@
 import time
 import threading
-import argparse
+import warnings
 from pynput.keyboard import Key, KeyCode, Controller, Listener
-from gooey import Gooey
+from gooey import Gooey, GooeyParser
 
 # Constants
 VERSION = "v0.1.0"
 COPYRIGHT = "2022"
 
+DELAY = 1
+CONSUMABLE_DELAY = 2
+KEY_DELAY = 0.3
+
 POTION_DURATION = 900
+
+KEYS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "M", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 SPECIAL_KEYS = {
-    "insert": Key.insert,
-    "delete": Key.delete,
-    "home": Key.home,
-    "end": Key.end,
-    "page_up": Key.page_up,
-    "page_down": Key.page_down,
+    "Insert": Key.insert,
+    "Delete": Key.delete,
+    "Home": Key.home,
+    "End": Key.end,
+    "Page Up": Key.page_up,
+    "Page Down": Key.page_down,
 }
 
 
 class XIVAutoCrafter(threading.Thread):
     def __init__(
         self,
-        delay,
         max_amount,
         macro1,
         macro1_duration,
@@ -45,7 +50,6 @@ class XIVAutoCrafter(threading.Thread):
         self.food = food
         self.food_duration = food_duration
         self.potion = potion
-        self.delay = delay
         self.max_amount = max_amount
         self.macro1 = macro1
         self.macro1_duration = macro1_duration
@@ -82,19 +86,19 @@ class XIVAutoCrafter(threading.Thread):
 
     def start_craft(self):
         keyboard.tap(self.confirm)
-        time.sleep(0.3)
+        time.sleep(KEY_DELAY)
         keyboard.tap(self.confirm)
-        time.sleep(0.3)
+        time.sleep(KEY_DELAY)
         keyboard.tap(self.confirm)
-        time.sleep(2)
+        time.sleep(KEY_DELAY)
 
     def cancel_craft(self):
         keyboard.tap(self.confirm)
-        time.sleep(0.3)
+        time.sleep(KEY_DELAY)
         keyboard.tap(self.cancel)
-        time.sleep(0.3)
+        time.sleep(KEY_DELAY)
         keyboard.tap(self.confirm)
-        time.sleep(2)
+        time.sleep(KEY_DELAY)
 
     def check_food(self):
         if self.debug:
@@ -120,7 +124,7 @@ class XIVAutoCrafter(threading.Thread):
 
         self.start_food_time = int(time.time())
         keyboard.tap(self.food)
-        time.sleep(3)
+        time.sleep(CONSUMABLE_DELAY)
 
         self.start_craft()
 
@@ -148,7 +152,7 @@ class XIVAutoCrafter(threading.Thread):
 
         self.start_potion_time = int(time.time())
         keyboard.tap(self.potion)
-        time.sleep(2)
+        time.sleep(CONSUMABLE_DELAY)
 
         self.start_craft()
 
@@ -175,8 +179,8 @@ class XIVAutoCrafter(threading.Thread):
                 if self.counter >= self.max_amount:
                     self.exit()
 
-                time.sleep(self.delay)
-            time.sleep(0.5)
+                time.sleep(DELAY)
+            time.sleep(DELAY)
 
 
 def str_to_key(string):
@@ -209,28 +213,149 @@ def str_to_key(string):
     progress_expr="x[0] / x[1] * 100"
 )
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="increase output verbosity"
-    )
-    parser.add_argument("-f", "--food", help="use food option and hotkey")
-    parser.add_argument(
-        "--food_duration",
-        choices=["30", "40", "45"],
-        help="duration of food in minutes",
-    )
-    parser.add_argument("-p", "--potion", help="use potion option and hotkey")
-    parser.add_argument("delay", type=int, help="sets delay per craft")
-    parser.add_argument("max_amount", type=int, help="maximum amount to craft")
-    parser.add_argument("macro1", help="macro 1 hotkey")
-    parser.add_argument("macro1_duration", type=int, help="macro 1 duration in seconds")
-    parser.add_argument("-m2", "--macro2", help="macro 2 hotkey")
-    parser.add_argument("--macro2_duration", type=int, help="macro 2 duration in seconds")
-    parser.add_argument("confirm", help="confirm hotkey")
-    parser.add_argument("cancel", help="cancel hotkey")
-    parser.add_argument("start_pause", help="start/pause XIVAutoCrafter hotkey")
-    parser.add_argument("stop", help="stop XIVAutoCrafter hotkey")
+    parser = GooeyParser()
 
+    # Config
+    config = parser.add_argument_group(
+        "XIVAutoCrafter Config"
+    )
+    config.add_argument(
+        "start_pause",
+        metavar="Start/Pause",
+        help="Start/Pause Program Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Enter Key"
+        }
+    )
+    config.add_argument(
+        "stop",
+        metavar="Stop",
+        help="Stop Program Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Enter Key"
+        }
+    )
+    config.add_argument(
+        "max_amount",
+        metavar="Max Amount",
+        help="Maximum Amount to Craft",
+        widget="IntegerField",
+        gooey_options={
+            "min": 1,
+            "increment": 1
+        }
+    )
+    config.add_argument(
+        "--verbose",
+        metavar="Verbose",
+        action="store_true", 
+        help="Increase Output Verbosity",
+        widget="BlockCheckbox"
+    )
+    
+    # Macros
+    macros = parser.add_argument_group(
+        "Macros"
+    )
+    macros.add_argument(
+        "macro1",
+        metavar="Macro 1",
+        help="Macro 1 Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Enter Key"
+        }
+    )
+    macros.add_argument(
+        "macro1_duration",
+        metavar="Macro 1 Duration", 
+        help="Macro 1 Duration in Seconds",
+        widget="IntegerField",
+        gooey_options={
+            "min": 1,
+            "increment": 1
+        }
+    )
+    macros.add_argument(
+        "--macro2",
+        metavar="Macro 2",
+        help="Macro 2 Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Optional"
+        }
+    )
+    macros.add_argument(
+        "--macro2_duration",
+        metavar="Macro 2 Duration",
+        help="Macro 2 Duration in Seconds",
+        widget="IntegerField",
+        gooey_options={
+            "placeholder": "Optional",
+            "increment": 1
+        }
+    )
+
+    # Consumables
+    consumables = parser.add_argument_group(
+        "Consumables"
+    )
+    consumables.add_argument(
+        "--food",
+        metavar="Food",
+        help="Food Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Optional"
+        }
+    )
+    consumables.add_argument(
+        "--food_duration",
+        metavar="Food Duration",
+        choices=["30", "40", "45"],
+        help="Duration of Food in Minutes"
+    )
+    consumables.add_argument(
+        "--potion",
+        metavar="Potion",
+        help="Potion Hotkey",
+        gooey_options={
+            "placeholder": "Optional"
+        }
+    )
+
+    # Settings
+    settings = parser.add_argument_group(
+        "Settings"
+    )
+    settings.add_argument(
+        "confirm",
+        metavar="Confirm",
+        help="Confirm Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Enter Key"
+        }
+    )
+    settings.add_argument(
+        "cancel",
+        metavar="Cancel",
+        help="Cancel Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
+        gooey_options={
+            "placeholder": "Enter Key"
+        }
+    )
+    
     args = parser.parse_args()
 
     if args.verbose:
@@ -239,7 +364,6 @@ def main():
         print("ARGUMENTS:\n")
         if args.food:
             print(f"FOOD KEY: {args.food}")
-        if args.food_duration:
             print(f"FOOD DURATION: {args.food_duration}")
         if args.potion:
             print(f"POTION KEY: {args.potion}")
@@ -249,7 +373,6 @@ def main():
         print(f"MACRO1 DURATION: {args.macro1_duration}")
         if args.macro2:
             print(f"MACRO2 KEY: {args.macro2}")
-        if args.macro2_duration:
             print(f"MACRO2 DURATION: {args.macro2_duration}")
         print(f"CONFIRM KEY: {args.confirm}")
         print(f"CANCEL KEY: {args.cancel}")
