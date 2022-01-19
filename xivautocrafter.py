@@ -1,6 +1,5 @@
 import time
 import threading
-import warnings
 from pynput.keyboard import Key, KeyCode, Controller, Listener
 from gooey import Gooey, GooeyParser
 
@@ -326,6 +325,8 @@ def main():
         "--potion",
         metavar="Potion",
         help="Potion Hotkey",
+        choices=KEYS + [*SPECIAL_KEYS],
+        widget="FilterableDropdown",
         gooey_options={
             "placeholder": "Optional"
         }
