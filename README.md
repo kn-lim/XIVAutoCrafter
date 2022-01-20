@@ -54,9 +54,9 @@ In order for XIVAutoCrafter to work properly:
 1. **Make sure you are not near anything that can be interacted with.**
     - This is important to make sure you don't accidentally target something else and thus being unable to craft.
 2. **Open the Crafting Log and select the item you want to craft with XIVAutoCrafter.**
-    - To ensure your character is in the right state, start and then cancel the craft.
+    - To ensure your character is in the correct state, start and then cancel the craft without any additional inputs.
 
-Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start.
+Once that is done, press the _Start/Pause XIVAutoCrafter_ hotkey to start the tool.
 
 ## Accepted Keys
 
